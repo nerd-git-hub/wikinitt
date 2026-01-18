@@ -1,34 +1,17 @@
-import { getArticleBySlug, getArticles } from '@/data/articles';
+import Article from '@/models/Articles'
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export default async function ArticlePage({ params }) {
   // Await params for Next.js 15+ compatibility
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
-  const allArticles = getArticles();
-
+  const article = await Article.findOne({ slug });;
   if (!article) notFound();
 
   // --- START: processedContent LOGIC ---
   // This satisfies the "Auto-Linking" bonus requirement
   const contentWords = article.content.split(' ');
-
-  const processedContent = contentWords.map((word, index) => {
-    const cleanWord = word.replace(/[.,]/g, ''); 
-    const linkedArticle = allArticles.find(
-      (a) => a.title === cleanWord && a.slug !== slug
-    );
-
-    if (linkedArticle) {
-      return (
-        <Link key={index} href={`/articles/${linkedArticle.slug}`} className="text-blue-600 underline font-semibold hover:text-blue-800">
-          {word}{' '}
-        </Link>
-      );
-    }
-    return word + ' ';
-  });
   // --- END: processedContent LOGIC ---
 
   return (
@@ -43,7 +26,7 @@ export default async function ArticlePage({ params }) {
       
       {/* This is where processedContent is used */}
       <div className="prose lg:prose-xl text-gray-700 leading-relaxed mb-10">
-        <p>{processedContent}</p>
+        <p>{article.content}</p>
       </div>
 
       {/* MAP SECTION: Only shows if mapUrl exists in articles.js */}
